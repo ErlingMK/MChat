@@ -7,21 +7,23 @@ use std::{
 
 use chatengine::message::{create_message, read_header, MessageMetaData, NUMBER_OF_BYTES, TEXT};
 use chrono::Utc;
+use tokio::stream;
+use websocket::ClientBuilder;
 
 fn main() {
-    match TcpStream::connect("127.0.0.1:7878") {
-        Ok(stream) => {
-            let cloned = stream.try_clone().unwrap();
+    let client = ClientBuilder::new("ws://127.0.0.1:7878")
+        .unwrap()
+        .connect_insecure()
+        .unwrap();
+    let (stream, _) = client.into_stream();
+    let cloned = stream.try_clone().unwrap();
 
-            let read_handle = thread::spawn(|| read_connection(cloned));
-            let write_handle = thread::spawn(|| write_connection(stream));
-            write_handle.join().unwrap();
-            read_handle.join().unwrap().unwrap();
+    let read_handle = thread::spawn(|| read_connection(cloned));
+    let write_handle = thread::spawn(|| write_connection(stream));
+    write_handle.join().unwrap();
+    read_handle.join().unwrap().unwrap();
 
-            println!("Connection complete");
-        }
-        Err(err) => eprintln!("Unable to connect to socket {}", err),
-    }
+    println!("Connection complete");
 }
 
 fn write_connection(mut stream: TcpStream) {

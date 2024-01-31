@@ -7,14 +7,16 @@ use std::{
 use chatengine::message::{create_message, read_header, MessageMetaData, NUMBER_OF_BYTES, TEXT};
 use chatengine::thread::ThreadPool;
 use chrono::Utc;
+use websocket::sync::Server;
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let server = Server::bind("127.0.0.1:7878").unwrap();
     let pool = ThreadPool::new(4);
-    for stream in listener.incoming() {
-        let tcp_stream = stream.unwrap();
-        let cloned = tcp_stream.try_clone().unwrap();
-        pool.execute(|| read_connection(tcp_stream).unwrap());
+    for connection in server.filter_map(Result::ok) {
+        let client = connection.accept().unwrap();
+        let (stream, _) = client.into_stream();
+        let cloned = stream.try_clone().unwrap();
+        pool.execute(|| read_connection(stream).unwrap());
         pool.execute(|| write_connection(cloned));
     }
 }
