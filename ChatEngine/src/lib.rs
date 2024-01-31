@@ -1,6 +1,9 @@
 use crate::client_connection::ClientConnection;
 use tokio::net::TcpListener;
 
+pub mod message;
+pub mod thread;
+
 mod client_connection;
 
 pub async fn start_server(address: String) {
