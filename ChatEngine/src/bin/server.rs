@@ -71,7 +71,7 @@ fn parse_type_and_length(buf_reader: &mut BufReader<&mut TcpStream>) -> MessageM
             length.copy_from_slice(&buf[1..=8]);
             let length = usize::from_be_bytes(length);
 
-            dbg!(buf);
+            println!("\nHeader data: {:?}", &buf);
             MessageMetaData {
                 message_type: buf[0],
                 length,
@@ -88,8 +88,9 @@ fn read_message(buf_reader: &mut BufReader<&mut TcpStream>, length: usize) {
     let mut buf = vec![0; length];
     match buf_reader.read_exact(&mut buf) {
         Ok(_) => {
+            println!("Content data: {:?}", &buf);
             let message = std::str::from_utf8(&buf).unwrap();
-            println!("Other: {message}");
+            println!("Content as text: {message}");
         }
         Err(err) => eprintln!("unable to read exact message: {err}"),
     }
@@ -138,7 +139,6 @@ impl Worker {
 
             match message {
                 Ok(job) => {
-                    println!("Worker id {id} got a job; executing.");
                     job();
                 }
                 Err(_) => {
