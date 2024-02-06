@@ -4,7 +4,9 @@ use std::{
     process::exit,
 };
 
-use chatengine::message::{create_message, read_header, MessageMetaData, NUMBER_OF_BYTES, TEXT};
+use chatengine::chat_message::{
+    message_as_bytes, read_message, MessageMetaData, NUMBER_OF_BYTES, TEXT,
+};
 use chatengine::thread::ThreadPool;
 use chrono::Utc;
 use websocket::sync::Server;
@@ -31,11 +33,11 @@ fn write_connection(mut stream: TcpStream) {
             message_type: TEXT,
             sender: 2,
             receiver: 1,
-            date: Utc::now().to_rfc3339(),
+            creation_date: Utc::now().to_rfc3339(),
             length: bytes.len(),
         };
 
-        let message = create_message(&message_meta_data, &bytes);
+        let message = message_as_bytes(&message_meta_data, &bytes);
 
         stream.write_all(&message).unwrap();
     }
@@ -64,7 +66,7 @@ fn parse_type_and_length(buf_reader: &mut BufReader<&mut TcpStream>) -> MessageM
     let mut buf: [u8; NUMBER_OF_BYTES] = [0; NUMBER_OF_BYTES];
 
     match buf_reader.read_exact(&mut buf) {
-        Ok(_) => read_header(&buf),
+        Ok(_) => read_message(&buf),
         Err(err) => {
             eprintln!("Failed to read from buffer {err}");
             exit(1);

@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use chatengine::{
-    message::{self, create_message, ChatMessage, NUMBER_OF_BYTES},
+    chat_message::{self, message_as_bytes, ChatMessage, NUMBER_OF_BYTES},
     publisher::{self, MessageManager},
 };
 use futures_util::{FutureExt, SinkExt, StreamExt};
@@ -49,20 +49,15 @@ async fn connected(socket: WebSocket, connections: Connections, publisher: Publi
 
         // parse header and create new connection for the parsed id
         let bytes = msg.as_bytes();
-        let chat_message = message::read_message(bytes);
+        let chat_message = chat_message::read_message(bytes);
         let (tx, mut rx) = mpsc::channel(10);
-        connections
-            .write()
-            .await
-            .insert(chat_message.meta_data.sender, tx);
+        connections.write().await.insert(chat_message.sender, tx);
 
         tokio::spawn(async move {
             while let Some(msg) = rx.recv().await {
                 // wait for message from others
-                println!("Received message from publisher: {:?}", msg);
-                let received_message = message::create_message(&msg.meta_data, &msg.data);
                 tx_socket
-                    .send(ws::Message::binary(received_message))
+                    .send(ws::Message::binary(chat_message::message_as_bytes(msg)))
                     .await
                     .unwrap();
             }
@@ -72,7 +67,7 @@ async fn connected(socket: WebSocket, connections: Connections, publisher: Publi
             while let Some(Ok(msg)) = rx_socket.next().await {
                 // wait for more messages from client
                 println!("Next messages {:?}", msg);
-                let chat_message = message::read_message(msg.as_bytes());
+                let chat_message = chat_message::read_message(msg.as_bytes());
                 println!("Received message: {:?}", chat_message);
 
                 match publisher.send(chat_message).await {

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc, u32};
 
-use crate::message::ChatMessage;
+use crate::chat_message::ChatMessage;
 use tokio::sync::{
     mpsc::{self, Sender},
     RwLock,
@@ -28,8 +28,8 @@ async fn receive_messages(
     while let Some(msg) = rx.recv().await {
         println!("Received message in publisher: {:?}", msg);
         let read = subscribers.read().await;
-        if read.contains_key(&msg.meta_data.receiver) {
-            let sender = read.get(&msg.meta_data.receiver).unwrap();
+        if read.contains_key(&msg.receiver) {
+            let sender = read.get(&msg.receiver).unwrap();
             sender.send(msg).await.unwrap();
         }
     }

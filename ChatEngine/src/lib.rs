@@ -1,7 +1,7 @@
 use crate::client_connection::ClientConnection;
 use tokio::net::TcpListener;
 
-pub mod message;
+pub mod chat_message;
 pub mod publisher;
 pub mod thread;
 
