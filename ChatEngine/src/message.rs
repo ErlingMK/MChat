@@ -9,6 +9,12 @@ pub struct MessageMetaData {
     pub length: usize,
 }
 
+#[derive(Debug)]
+pub struct ChatMessage {
+    pub meta_data: MessageMetaData,
+    pub data: Vec<u8>,
+}
+
 pub const NUMBER_OF_BYTES: usize = 1 + 4 + 4 + 40 + 8;
 
 pub const TEXT: u8 = 1;
@@ -29,7 +35,7 @@ pub fn create_message(meta_data: &MessageMetaData, data: &[u8]) -> Vec<u8> {
 }
 
 pub fn read_header(buf: &[u8]) -> MessageMetaData {
-    let header = &buf[0..(NUMBER_OF_BYTES)];
+    let header = buf;
     let mut date = header[9..=48].to_vec();
     date.retain(|&x| x != 0);
     let message_meta_data = MessageMetaData {
@@ -39,7 +45,11 @@ pub fn read_header(buf: &[u8]) -> MessageMetaData {
         date: String::from_utf8(date.to_vec()).unwrap(),
         length: usize::from_be_bytes(header[49..=56].try_into().unwrap()),
     };
-    println!("");
-    dbg!(&message_meta_data);
     return message_meta_data;
+}
+
+pub fn read_message(msg: &[u8]) -> ChatMessage {
+    let meta_data = read_header(&msg[0..NUMBER_OF_BYTES]);
+    let data = msg[NUMBER_OF_BYTES..].to_vec();
+    ChatMessage { meta_data, data }
 }

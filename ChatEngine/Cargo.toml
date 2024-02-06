@@ -11,4 +11,8 @@ bytes = "1"
 rand = "0.8"
 chrono = "0.4"
 websocket = "0.27"
+warp = {version = "*", features = ["tls"]}
+futures-util = "*"
+tokio-stream = "*"
+tungstenite = {version = "*", features = ["native-tls"]}
 
