@@ -1,6 +1,6 @@
 use std::env::args;
 
-use chatengine::chat_message::{self, read_message};
+use chatengine::{message::ChatMessage, publisher::MessageManager};
 use futures_util::{stream::SplitStream, SinkExt, StreamExt};
 use tokio::{
     io::{stdin, AsyncReadExt},
@@ -29,7 +29,7 @@ async fn main() {
             tokio::spawn(receive_messages(reader));
 
             // send the inital hello message
-            let message = chat_message::create_hello(sender, receiver);
+            let message = ChatMessage::create_hello(sender, receiver);
             writer.send(Message::Binary(message)).await.unwrap();
 
             // sends messages read from stdin
@@ -44,7 +44,7 @@ async fn main() {
 async fn receive_messages(mut reader: Reader) {
     while let Some(msg) = reader.next().await {
         let msg = msg.unwrap();
-        let msg = read_message(&msg.into_data());
+        let msg = ChatMessage::read_message(&msg.into_data());
         println!(
             "Received message: {:?}",
             msg.read_content_as_utf8().unwrap()
@@ -61,7 +61,7 @@ async fn read_in(tx: UnboundedSender<Message>, sender: u32, receiver: u32) {
         };
 
         buf.truncate(n - 1); // take only what was read and also remove the new line
-        let message = chat_message::create_text_message(sender, receiver, buf);
+        let message = ChatMessage::create_text_message(sender, receiver, buf);
         tx.send(Message::Binary(message)).unwrap();
     }
 }

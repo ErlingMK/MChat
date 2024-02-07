@@ -41,7 +41,7 @@ impl ChatMessage {
         ChatMessage::message_as_bytes(message_meta_data)
     }
 
-    fn message_as_bytes(chat_message: ChatMessage) -> Vec<u8> {
+    pub fn message_as_bytes(chat_message: ChatMessage) -> Vec<u8> {
         let length = chat_message.data.len();
         let mut message: Vec<u8> = Vec::with_capacity(length + 8 * NUMBER_OF_BYTES);
         message.push(chat_message.kind.as_bytes());

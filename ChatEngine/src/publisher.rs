@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc, u32};
 
-use crate::chat_message::ChatMessage;
+use crate::message::*;
 use tokio::sync::{
     mpsc::{self, Sender},
     RwLock,
